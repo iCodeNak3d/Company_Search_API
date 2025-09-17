@@ -429,16 +429,6 @@ def search_company(company_name, address, token):
                 if date_creation_complete and len(date_creation_complete) >= 4:
                     annee_creation = date_creation_complete[:4]  # Prendre les 4 premiers caractères (l'année)
                 
-                # Extraire le chiffre d'affaires et le capital social
-                chiffre_affaires = best_match.get('chiffre_affaires', '')
-                capital_social = best_match.get('capital_social', '')
-                
-                # Extraction de l'année de création uniquement (l'API ne fournit pas le CA ni le capital)
-                annee_creation = ""
-                date_creation_complete = best_match.get('date_creation', '')
-                if date_creation_complete and len(date_creation_complete) >= 4:
-                    annee_creation = date_creation_complete[:4]  # Prendre les 4 premiers caractères (l'année)
-                
                 return {
                     'siren': best_match.get('siren', ''),
                     'nom_raison_sociale': best_match.get('nom_complet', ''),
@@ -446,7 +436,7 @@ def search_company(company_name, address, token):
                     'etat_administratif': best_match.get('etat_administratif', ''),
                     'tranche_effectif_code': tranche_effectif_code,
                     'tranche_effectif': tranche_effectif_desc,
-                    'date_creation': date_creation_complete,
+                    'date_creation': annee_creation,  # Afficher seulement l'année
                     'annee_creation': annee_creation,
                     'nom_dirigeant': nom_dirigeant,
                     'prenom_dirigeant': prenom_dirigeant,
@@ -481,7 +471,7 @@ def enrich_excel_file(input_file, output_file, token):
             logging.info(f"Fichier Excel chargé: {len(df)} lignes")
             logging.info(f"Colonnes: {', '.join(df.columns)}")
             
-            # Supprimer les colonnes "Nom" et "Unnamed: 8" si elles existent
+            # Supprimer les colonnes "Nom", "Unnamed: 8" et "Siren" si elles existent
             if 'Nom' in df.columns:
                 df = df.drop(columns=['Nom'])
                 logging.info("Colonne 'Nom' supprimée car inutile")
@@ -489,6 +479,11 @@ def enrich_excel_file(input_file, output_file, token):
             if 'Unnamed: 8' in df.columns:
                 df = df.drop(columns=['Unnamed: 8'])
                 logging.info("Colonne 'Unnamed: 8' supprimée car inutile")
+                
+            # Supprimer la colonne 'Siren' si elle existe car elle est redondante avec 'SIREN'
+            if 'Siren' in df.columns:
+                df = df.drop(columns=['Siren'])
+                logging.info("Colonne 'Siren' supprimée car redondante avec 'SIREN'")
         except Exception as e:
             logging.error(f"Erreur lors de la lecture du fichier: {str(e)}")
             return False
