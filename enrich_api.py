@@ -433,9 +433,7 @@ def search_company(company_name, address, token):
                 chiffre_affaires = best_match.get('chiffre_affaires', '')
                 capital_social = best_match.get('capital_social', '')
                 
-                # Extraction des variables additionnelles
-                chiffre_affaires = best_match.get('chiffre_affaires', '')
-                capital_social = best_match.get('capital_social', '')
+                # Extraction de l'année de création uniquement (l'API ne fournit pas le CA ni le capital)
                 annee_creation = ""
                 date_creation_complete = best_match.get('date_creation', '')
                 if date_creation_complete and len(date_creation_complete) >= 4:
@@ -450,8 +448,6 @@ def search_company(company_name, address, token):
                     'tranche_effectif': tranche_effectif_desc,
                     'date_creation': date_creation_complete,
                     'annee_creation': annee_creation,
-                    'capital': capital_social,
-                    'ca': chiffre_affaires,
                     'nom_dirigeant': nom_dirigeant,
                     'prenom_dirigeant': prenom_dirigeant,
                     'qualite_dirigeant': qualite_dirigeant,
@@ -484,6 +480,15 @@ def enrich_excel_file(input_file, output_file, token):
             df = pd.read_excel(input_file)
             logging.info(f"Fichier Excel chargé: {len(df)} lignes")
             logging.info(f"Colonnes: {', '.join(df.columns)}")
+            
+            # Supprimer les colonnes "Nom" et "Unnamed: 8" si elles existent
+            if 'Nom' in df.columns:
+                df = df.drop(columns=['Nom'])
+                logging.info("Colonne 'Nom' supprimée car inutile")
+                
+            if 'Unnamed: 8' in df.columns:
+                df = df.drop(columns=['Unnamed: 8'])
+                logging.info("Colonne 'Unnamed: 8' supprimée car inutile")
         except Exception as e:
             logging.error(f"Erreur lors de la lecture du fichier: {str(e)}")
             return False
@@ -495,9 +500,9 @@ def enrich_excel_file(input_file, output_file, token):
             logging.error(f"Colonnes manquantes: {', '.join(missing_columns)}")
             return False
             
-        # Préparer les colonnes de résultats
+        # Préparer les colonnes de résultats (sans CA ni Capital que l'API ne fournit pas)
         result_columns = ['SIREN', 'Nom_Raison_Sociale', 'Adresse', 'Etat_Administratif', 
-                        'Tranche_Effectif', 'Date_Creation', 'Annee_Creation', 'CA', 'Capital',
+                        'Tranche_Effectif', 'Date_Creation', 'Annee_Creation',
                         'Nom_Dirigeant', 'Prenom_Dirigeant', 'Qualite_Dirigeant', 'Age_Dirigeant', 'Match_Adresse']
         
         # Ajouter des colonnes pour les dirigeants alternatifs (5 maximum)
@@ -552,8 +557,6 @@ def enrich_excel_file(input_file, output_file, token):
                 df.at[idx, 'Tranche_Effectif'] = result['tranche_effectif']
                 df.at[idx, 'Date_Creation'] = result['date_creation']
                 df.at[idx, 'Annee_Creation'] = result['annee_creation']
-                df.at[idx, 'CA'] = result['ca']
-                df.at[idx, 'Capital'] = result['capital']
                 df.at[idx, 'Nom_Dirigeant'] = result['nom_dirigeant']
                 df.at[idx, 'Prenom_Dirigeant'] = result['prenom_dirigeant']
                 df.at[idx, 'Qualite_Dirigeant'] = result['qualite_dirigeant']
