@@ -480,7 +480,7 @@ def enrich_excel_file(input_file, output_file, token):
                 df = df.drop(columns=['Unnamed: 8'])
                 logging.info("Colonne 'Unnamed: 8' supprimée car inutile")
                 
-            # Supprimer la colonne 'Siren' si elle existe car elle est redondante avec 'SIREN'
+            # Supprimer la colonne 'Siren' avec S majuscule si elle existe car elle est redondante avec 'SIREN'
             if 'Siren' in df.columns:
                 df = df.drop(columns=['Siren'])
                 logging.info("Colonne 'Siren' supprimée car redondante avec 'SIREN'")
