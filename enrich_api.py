@@ -495,9 +495,9 @@ def enrich_excel_file(input_file, output_file, token):
             logging.error(f"Colonnes manquantes: {', '.join(missing_columns)}")
             return False
             
-        # Préparer les colonnes de résultats (sans CA ni Capital que l'API ne fournit pas)
+        # Préparer les colonnes de résultats (sans CA ni Capital que l'API ne fournit pas, et sans Date_Creation)
         result_columns = ['SIREN', 'Nom_Raison_Sociale', 'Adresse', 'Etat_Administratif', 
-                        'Tranche_Effectif', 'Date_Creation', 'Annee_Creation',
+                        'Tranche_Effectif', 'Annee_Creation',
                         'Nom_Dirigeant', 'Prenom_Dirigeant', 'Qualite_Dirigeant', 'Age_Dirigeant', 'Match_Adresse']
         
         # Ajouter des colonnes pour les dirigeants alternatifs (5 maximum)
@@ -550,7 +550,6 @@ def enrich_excel_file(input_file, output_file, token):
                 df.at[idx, 'Adresse'] = result['adresse']
                 df.at[idx, 'Etat_Administratif'] = result['etat_administratif']
                 df.at[idx, 'Tranche_Effectif'] = result['tranche_effectif']
-                df.at[idx, 'Date_Creation'] = result['date_creation']
                 df.at[idx, 'Annee_Creation'] = result['annee_creation']
                 df.at[idx, 'Nom_Dirigeant'] = result['nom_dirigeant']
                 df.at[idx, 'Prenom_Dirigeant'] = result['prenom_dirigeant']
